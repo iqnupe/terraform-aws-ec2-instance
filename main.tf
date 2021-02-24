@@ -11,7 +11,12 @@ locals {
   ami                    = var.ami != "" ? var.ami : join("", data.aws_ami.default.*.image_id)
   ami_owner              = var.ami != "" ? var.ami_owner : join("", data.aws_ami.default.*.owner_id)
   root_volume_type       = var.root_volume_type != "" ? var.root_volume_type : data.aws_ami.info.root_device_type
-  public_dns             = var.associate_public_ip_address && var.assign_eip_address && module.this.enabled ? data.null_data_source.eip.outputs["public_dns"] : join("", aws_instance.default.*.public_dns)
+  public_dns             = var.associate_public_ip_address && var.assign_eip_address && module.this.enabled ? local.inputs["public_dns"] : join("", aws_instance.default.*.public_dns)
+  private_ip = var.private_ip_hostnum > 0 ?  cidrhost(data.aws_subnet.default.cidr_block, var.private_ip_hostnum) : var.private_ip
+    inputs = {
+    public_dns = "ec2-${replace(join("", aws_eip.default.*.public_ip), ".", "-")}.${local.region == "us-east-1" ? "compute-1" : "${local.region}.compute"}.amazonaws.com"
+  }
+
 }
 
 data "aws_caller_identity" "default" {
@@ -114,7 +119,7 @@ resource "aws_instance" "default" {
   key_name                    = var.ssh_key_pair
   subnet_id                   = var.subnet
   monitoring                  = var.monitoring
-  private_ip                  = var.private_ip
+  private_ip                  = local.private_ip
   source_dest_check           = var.source_dest_check
   ipv6_address_count          = var.ipv6_address_count < 0 ? null : var.ipv6_address_count
   ipv6_addresses              = length(var.ipv6_addresses) == 0 ? null : var.ipv6_addresses
@@ -147,12 +152,6 @@ resource "aws_eip" "default" {
   network_interface = join("", aws_instance.default.*.primary_network_interface_id)
   vpc               = true
   tags              = module.this.tags
-}
-
-data "null_data_source" "eip" {
-  inputs = {
-    public_dns = "ec2-${replace(join("", aws_eip.default.*.public_ip), ".", "-")}.${local.region == "us-east-1" ? "compute-1" : "${local.region}.compute"}.amazonaws.com"
-  }
 }
 
 resource "aws_ebs_volume" "default" {

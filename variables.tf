@@ -109,6 +109,12 @@ variable "monitoring" {
   default     = true
 }
 
+variable "private_ip_hostnum"{
+  type = number
+  description = "Hostnum to set for private ip.  Ignored if 0."
+  default=0
+}
+
 variable "private_ip" {
   type        = string
   description = "Private IP address to associate with the instance in the VPC"
