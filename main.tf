@@ -29,12 +29,8 @@ data "aws_partition" "default" {
 }
 
 data "aws_subnet" "default" {
-  filter {
-    name   = "tag:Name"
-    values = [var.subnet]
-  }
+  id = var.subnet
 }
-
 data "aws_iam_policy_document" "default" {
   statement {
     sid = ""
@@ -120,7 +116,7 @@ resource "aws_instance" "default" {
   iam_instance_profile        = local.instance_profile
   associate_public_ip_address = var.associate_public_ip_address
   key_name                    = var.ssh_key_pair
-  subnet_id                   = data.aws_subnet.default.id
+  subnet_id                   = var.subnet
   monitoring                  = var.monitoring
   private_ip                  = local.private_ip
   source_dest_check           = var.source_dest_check
