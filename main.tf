@@ -31,7 +31,7 @@ data "aws_partition" "default" {
 data "aws_subnet" "default" {
   filter {
     name   = "tag:Name"
-    values = ["${var.subnet}"]
+    values = [var.subnet]
   }
 }
 
