@@ -12,8 +12,8 @@ locals {
   ami_owner              = var.ami != "" ? var.ami_owner : join("", data.aws_ami.default.*.owner_id)
   root_volume_type       = var.root_volume_type != "" ? var.root_volume_type : data.aws_ami.info.root_device_type
   public_dns             = var.associate_public_ip_address && var.assign_eip_address && module.this.enabled ? local.inputs["public_dns"] : join("", aws_instance.default.*.public_dns)
-  private_ip = var.private_ip_hostnum > 0 ?  cidrhost(data.aws_subnet.default.cidr_block, var.private_ip_hostnum) : var.private_ip
-    inputs = {
+  private_ip             = var.private_ip_hostnum > 0 ? cidrhost(data.aws_subnet.default.cidr_block, var.private_ip_hostnum) : var.private_ip
+  inputs = {
     public_dns = "ec2-${replace(join("", aws_eip.default.*.public_ip), ".", "-")}.${local.region == "us-east-1" ? "compute-1" : "${local.region}.compute"}.amazonaws.com"
   }
 
@@ -120,7 +120,7 @@ resource "aws_instance" "default" {
   iam_instance_profile        = local.instance_profile
   associate_public_ip_address = var.associate_public_ip_address
   key_name                    = var.ssh_key_pair
-  subnet_id                   = var.subnet
+  subnet_id                   = data.aws_subnet.default.id
   monitoring                  = var.monitoring
   private_ip                  = local.private_ip
   source_dest_check           = var.source_dest_check
