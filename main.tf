@@ -29,7 +29,10 @@ data "aws_partition" "default" {
 }
 
 data "aws_subnet" "default" {
-  id = var.subnet
+  filter {
+    name   = "tag:Name"
+    values = ["${var.subnet}"]
+  }
 }
 
 data "aws_iam_policy_document" "default" {
